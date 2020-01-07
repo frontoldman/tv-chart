@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+      "module": "es2015",
+      "target": "es5",
+      "noImplicitAny": true,
+      "removeComments": true,
+      "preserveConstEnums": true,
+      "outDir": "./build/",
+      "sourceMap": true,
+      "watch": true
+  },
+  "include": [
+      "src/**/*"
+  ],
+  "exclude": [
+      "node_modules",
+      "**/*.spec.ts"
+  ]
+}

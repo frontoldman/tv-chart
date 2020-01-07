@@ -1,0 +1,26 @@
+{
+  "name": "tv",
+  "version": "0.0.1",
+  "description": "交通BI图表库",
+  "main": "index.ts",
+  "scripts": {
+    "dev": "webpack --config ./webpack.config.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@git.17usoft.com:trafficfrontbi/TV.git"
+  },
+  "keywords": [
+    "chart"
+  ],
+  "author": "zr",
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {
+    "awesome-typescript-loader": "^5.2.1",
+    "typescript": "^3.7.4",
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10"
+  }
+}
