@@ -1,5 +1,6 @@
 export interface chartOption {
-  contianer: string | HTMLElement
+  contianer: string | HTMLElement;
+  data: Array<any>
 }
 
 export interface chartSize {
