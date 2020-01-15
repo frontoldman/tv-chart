@@ -1,6 +1,7 @@
 export interface chartOption {
   contianer: string | HTMLElement;
-  data: Array<any>
+  data: Array<any>;
+  padding: [number, number, number, number]
 }
 
 export interface chartSize {
@@ -10,14 +11,30 @@ export interface chartSize {
   height: number;
 }
 
-export declare class BaseChart {
-  private option: chartOption
+export interface  BaseChart {
+  option: chartOption
 
-  constructor(option: chartOption)
+  constructor(option: chartOption): void
 
-  private initOption(option: chartOption) :chartOption
+  initOption(option: chartOption) :chartOption
 
-  private initContainer() :void
+  initContainer() :void
 }
 
+export interface domainValAry {
+  [index: number]: number
+}
+
+export interface rangeValAry {
+  [index: number]: number
+}
+
+
+export interface BaseLinear {
+  domain(domainVal: domainValAry) : BaseLinear
+
+  range(rangeVal: rangeValAry): BaseLinear
+
+
+}
 
