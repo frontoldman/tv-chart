@@ -4,6 +4,11 @@ import { isString } from './utils/index'
 import { max, min } from './utils/data'
 import Linear from './scala/linear'
 
+interface Point {
+  x: number,
+  y: number
+}
+
 class Chart {
   private option: chartOption
 
@@ -33,7 +38,13 @@ class Chart {
     this.createCanvas()
 
     this.createLinear()
-    this.renderLine()
+
+    const { type } = option
+    if (type === 'line') {
+      this.renderLine()
+    } else if (type === 'bar') {
+      this.renderBar()
+    }
 
     this.renderAxisX()
     this.renderAxisY()
@@ -99,7 +110,7 @@ class Chart {
    * 创建比例尺
    */
   createLinear() {
-    const { data, padding } = this.option
+    const { data, padding, axis } = this.option
     const { height, width } = this.size
 
     const maxY: number = max(data, item => item.y)
@@ -109,8 +120,16 @@ class Chart {
 
     this.linearY = linearY
 
+    let paddingLeft = 0
+    let paddingRight = 0
+    // 如果坐标轴设置了padding, 图标整体向内
+    if (axis && axis.x && axis.x.padding && axis.x.padding.left && axis.x.padding.right) {
+      paddingLeft = axis.x.padding.left
+      paddingRight = axis.x.padding.right
+    } 
+
     const linearX = new Linear()
-    linearX.domain([0, data.length - 1]).range([padding[3], width - padding[1]])
+    linearX.domain([0, data.length - 1]).range([padding[3] + paddingLeft, width - padding[1] - paddingRight])
 
     this.linearX = linearX
 
@@ -119,12 +138,7 @@ class Chart {
   }
 
   renderLine() {
-    interface Point {
-      x: number,
-      y: number
-    }
-
-    const { data } = this.option
+    const { data, showArea } = this.option
 
     const points: Array<Point> = data.map(({ y }: { y: number }, index: number) => {
       return {
@@ -133,11 +147,13 @@ class Chart {
       }
     })
 
+    const n: number = points.length
+
     this.context2d.beginPath()
     this.context2d.moveTo(points[0].x, points[0].y)
-    if (points.length === 1) {
+    if (n === 1) {
       this.context2d.lineTo(points[0].x, points[0].y)
-    } else if (points.length === 2) {
+    } else if (n === 2) {
       this.context2d.lineTo(points[1].x, points[1].y)
     } else {
       // https://math.stackexchange.com/questions/45218/implementation-of-monotone-cubic-interpolation
@@ -146,7 +162,6 @@ class Chart {
       const dxs: number[] = [] // 两点之间的x距离
       const dys: number[] = [] // 两点之间的y距离
       const ms: number[] = []
-      const n: number = points.length
 
       let i
 
@@ -189,12 +204,35 @@ class Chart {
       }
     }
 
+    if (showArea && n > 1) {
+      const firstPoint = points[0]
+      const lastPoint = points[n - 1]
+      this.context2d.lineTo(lastPoint.x, this.linearY.get(0))
+      this.context2d.lineTo(firstPoint.x, this.linearY.get(0))
+      this.context2d.closePath()
+      this.context2d.fill()
+    }
+
     this.context2d.stroke()
 
   }
 
   renderBar() {
+    const { data, padding } = this.option
+    const { height } = this.size
 
+    const points: Array<Point> = data.map(({ y }: { y: number }, index: number) => {
+      return {
+        x: this.linearX.get(index),
+        y: this.linearY.get(y)
+      }
+    })
+
+    points.forEach((point: Point) => {
+      this.context2d.fillRect(point.x - 5, point.y, 10, height - padding[2] - point.y)
+    })
+
+    this.context2d.stroke()
   }
 
   renderAxisX(): void {
@@ -262,7 +300,7 @@ class Chart {
 }
 
 const data = []
-for (var ii = 0; ii < 50; ii++) {
+for (var ii = 0; ii < 10; ii++) {
   data[ii] = {
     x: ii,
     y: Math.random() * 90
@@ -275,5 +313,32 @@ new Chart({
   contianer: '#line',
   // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
   padding: [20, 20, 50, 50],
-  data
+  data,
+  type: 'line'
+})
+
+
+new Chart({
+  contianer: '#bar',
+  // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
+  padding: [20, 20, 50, 50],
+  data,
+  type: 'bar',
+  axis: {
+    x: {
+      padding: {
+        left: 50,
+        right: 50
+      }
+    }
+  }
+})
+
+new Chart({
+  contianer: '#linearea',
+  // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
+  padding: [20, 20, 50, 50],
+  data,
+  type: 'line',
+  showArea: true
 })

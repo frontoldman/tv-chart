@@ -1,7 +1,17 @@
 export interface chartOption {
   contianer: string | HTMLElement;
   data: Array<any>;
-  padding: [number, number, number, number]
+  padding?: [number, number, number, number],
+  type: 'line' | 'bar',
+  showArea?: boolean,
+  axis?: {
+    x?: {
+      padding?: {
+        left?: number,
+        right?: number,
+      }
+    }
+  }
 }
 
 export interface chartSize {
