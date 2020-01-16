@@ -9,6 +9,11 @@ interface Point {
   y: number
 }
 
+interface Angle {
+  start: number,
+  end: number,
+}
+
 class Chart {
   private option: chartOption
 
@@ -37,17 +42,25 @@ class Chart {
     this.initContainer()
     this.createCanvas()
 
-    this.createLinear()
+
 
     const { type } = option
     if (type === 'line') {
+      this.createLinear()
       this.renderLine()
+      this.renderAxisX()
+      this.renderAxisY()
     } else if (type === 'bar') {
+      this.createLinear()
       this.renderBar()
+      this.renderAxisX()
+      this.renderAxisY()
+    } else if (type === 'pie') {
+      this.createPieLinear()
+      this.renderPie()
     }
 
-    this.renderAxisX()
-    this.renderAxisY()
+
   }
 
   // 初始化options
@@ -126,7 +139,7 @@ class Chart {
     if (axis && axis.x && axis.x.padding && axis.x.padding.left && axis.x.padding.right) {
       paddingLeft = axis.x.padding.left
       paddingRight = axis.x.padding.right
-    } 
+    }
 
     const linearX = new Linear()
     linearX.domain([0, data.length - 1]).range([padding[3] + paddingLeft, width - padding[1] - paddingRight])
@@ -135,6 +148,22 @@ class Chart {
 
     this._domainY = [0, maxY]
     this._domainX = [0, data.length - 1]
+  }
+
+  createPieLinear() {
+    const { data } = this.option
+
+    const maxY = data.reduce((total, item1: { y: number }) => {
+      return item1.y + total
+    }, 0)
+
+    const linearY = new Linear()
+    // linearY.domain([0, maxY]).range([-Math.PI * 0.5, Math.PI * 1.5])
+    linearY.domain([0, maxY]).range([-0.5 * Math.PI, 1.5 * Math.PI])
+
+    this.linearY = linearY
+
+    this._domainY = [0, maxY]
   }
 
   renderLine() {
@@ -235,6 +264,59 @@ class Chart {
     this.context2d.stroke()
   }
 
+  renderPie() {
+    const { context2d } = this
+    const { padding, data } = this.option
+    const { width, height } = this.size
+    const rectW = width - padding[1] - padding[3]
+    const rectH = height - padding[0] - padding[2]
+    const radius = Math.min(rectW, rectH) / 2
+
+    const center = {
+      x: rectW / 2 + padding[3],
+      y: rectH / 2 + padding[0]
+    }
+
+
+    const sumEveryX: Array<number[]> = []
+    for (let i = 0; i < data.length; i++) {
+      if (i === 0) {
+        sumEveryX.push([0, data[i].y])
+      } else {
+        sumEveryX.push([sumEveryX[i - 1][1], data[i].y + sumEveryX[i - 1][1]])
+      }
+    }
+
+    console.log(sumEveryX)
+
+    const arc: Array<Angle> = sumEveryX.map((item: number[]) => {
+      return {
+        start: this.linearY.get(item[0]),
+        end: this.linearY.get(item[1])
+      }
+    })
+
+    console.log(arc)
+
+    const colors = ['#ffccc7', '#ffe58f', '#eaff8f', 
+    '#87e8de', '#91d5ff', '#efdbff', '#ffadd2', '#8c8c8c', '#096dd9', '#531dab']
+
+    arc.forEach(({start, end}: {start: number, end: number},index) => {
+      context2d.beginPath()
+      context2d.moveTo(center.x, center.y)
+      context2d.arc(center.x, center.y, radius, start, end)
+      context2d.lineTo(center.x, center.y)
+      context2d.closePath()
+      console.log(colors[index % colors.length])
+      context2d.fillStyle = colors[index % colors.length]
+      context2d.fill()
+      
+    })
+
+    context2d.stroke()
+    
+  }
+
   renderAxisX(): void {
     const { data, padding } = this.option
     const { width, height } = this.size
@@ -281,7 +363,7 @@ class Chart {
 
     const x = padding[3]
     for (let i = this.maxYTick - 1; i >= 0; i--) {
-      let _yVal: number  = yStep * i + this._domainY[0]
+      let _yVal: number = yStep * i + this._domainY[0]
       let y = this.linearY.get(_yVal)
       let yVal = _yVal.toFixed(1)
 
@@ -307,38 +389,47 @@ for (var ii = 0; ii < 10; ii++) {
   }
 }
 
-console.log(data)
+// console.log(data)
+
+// new Chart({
+//   contianer: '#line',
+//   // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
+//   padding: [20, 20, 50, 50],
+//   data,
+//   type: 'line'
+// })
+
+
+// new Chart({
+//   contianer: '#bar',
+//   // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
+//   padding: [20, 20, 50, 50],
+//   data,
+//   type: 'bar',
+//   axis: {
+//     x: {
+//       padding: {
+//         left: 50,
+//         right: 50
+//       }
+//     }
+//   }
+// })
+
+// new Chart({
+//   contianer: '#linearea',
+//   // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
+//   padding: [20, 20, 50, 50],
+//   data,
+//   type: 'line',
+//   showArea: true
+// })
 
 new Chart({
-  contianer: '#line',
+  contianer: '#pie',
   // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
   padding: [20, 20, 50, 50],
   data,
-  type: 'line'
-})
-
-
-new Chart({
-  contianer: '#bar',
-  // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
-  padding: [20, 20, 50, 50],
-  data,
-  type: 'bar',
-  axis: {
-    x: {
-      padding: {
-        left: 50,
-        right: 50
-      }
-    }
-  }
-})
-
-new Chart({
-  contianer: '#linearea',
-  // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
-  padding: [20, 20, 50, 50],
-  data,
-  type: 'line',
+  type: 'pie',
   showArea: true
 })
