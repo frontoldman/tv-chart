@@ -2,7 +2,13 @@ import { BaseChart, chartOption, chartSize, BaseLinear } from './types/index'
 import { getOffset, queryDom, createDom, setStyle, setAttr } from './utils/dom'
 import { isString } from './utils/index'
 import { max, min } from './utils/data'
-import Linear from './scala/linear'
+import Linear from './scala/Linear'
+import Line from './chart/Line'
+import Bar from './chart/Bar'
+import Pie from './chart/Pie'
+import AxisX from './axis/axisX'
+import AxisY from './axis/axisY'
+import Event from './event/index'
 
 interface Point {
   x: number,
@@ -42,8 +48,6 @@ class Chart {
     this.initContainer()
     this.createCanvas()
 
-
-
     const { type } = option
     if (type === 'line') {
       this.createLinear()
@@ -58,8 +62,9 @@ class Chart {
     } else if (type === 'pie') {
       this.createPieLinear()
       this.renderPie()
-    }
+    } 
 
+    new Event(this.canvasDom)
 
   }
 
@@ -176,74 +181,14 @@ class Chart {
       }
     })
 
-    const n: number = points.length
+    const line: Line = new Line({
+      context2d: this.context2d,
+      points: points,
+      showArea: showArea,
+      areaY: this.linearY.get(0)
+    })
 
-    this.context2d.beginPath()
-    this.context2d.moveTo(points[0].x, points[0].y)
-    if (n === 1) {
-      this.context2d.lineTo(points[0].x, points[0].y)
-    } else if (n === 2) {
-      this.context2d.lineTo(points[1].x, points[1].y)
-    } else {
-      // https://math.stackexchange.com/questions/45218/implementation-of-monotone-cubic-interpolation
-
-      const ds: number[] = [] // 两点之间的距离y / x 比例
-      const dxs: number[] = [] // 两点之间的x距离
-      const dys: number[] = [] // 两点之间的y距离
-      const ms: number[] = []
-
-      let i
-
-      for (i = 0; i < n - 1; i++) {
-        dxs[i] = points[i + 1].x - points[i].x
-        dys[i] = points[i + 1].y - points[i].y
-        ds[i] = dys[i] / dxs[i]
-      }
-
-      ms[0] = ds[0]
-      ms[n - 1] = ds[n - 2];
-
-
-      for (i = 1; i < n - 1; i++) {
-        if (ds[i] === 0 || ds[i - 1] === 0 || (ds[i - 1] > 0) !== (ds[i] > 0)) {
-          ms[i] = 0;
-        } else {
-          ms[i] = 3 * (dxs[i - 1] + dxs[i]) / (
-            (2 * dxs[i] + dxs[i - 1]) / ds[i - 1] +
-            (dxs[i] + 2 * dxs[i - 1]) / ds[i]);
-
-          if (!isFinite(ms[i])) {
-            ms[i] = 0;
-          }
-        }
-      }
-
-      for (i = 0; i < n - 1; i++) {
-        this.context2d.bezierCurveTo(
-          // First control point
-          points[i].x + dxs[i] / 3,
-          points[i].y + ms[i] * dxs[i] / 3,
-          // Second control point
-          points[i + 1].x - dxs[i] / 3,
-          points[i + 1].y - ms[i + 1] * dxs[i] / 3,
-          // End point
-          points[i + 1].x,
-          points[i + 1].y,
-        );
-      }
-    }
-
-    if (showArea && n > 1) {
-      const firstPoint = points[0]
-      const lastPoint = points[n - 1]
-      this.context2d.lineTo(lastPoint.x, this.linearY.get(0))
-      this.context2d.lineTo(firstPoint.x, this.linearY.get(0))
-      this.context2d.closePath()
-      this.context2d.fill()
-    }
-
-    this.context2d.stroke()
-
+    line.render()
   }
 
   renderBar() {
@@ -257,11 +202,13 @@ class Chart {
       }
     })
 
-    points.forEach((point: Point) => {
-      this.context2d.fillRect(point.x - 5, point.y, 10, height - padding[2] - point.y)
+    const bar = new Bar({
+      context2d: this.context2d,
+      points: points,
+      height: height - padding[2]
     })
 
-    this.context2d.stroke()
+    bar.render()
   }
 
   renderPie() {
@@ -271,6 +218,18 @@ class Chart {
     const rectW = width - padding[1] - padding[3]
     const rectH = height - padding[0] - padding[2]
     const radius = Math.min(rectW, rectH) / 2
+
+    let _radius
+
+    if (typeof this.option.radius === 'object') {
+      const { min, max } = this.option.radius
+    const maxRadius = max * radius
+    const minRadius = min * radius
+      _radius = {minRadius, maxRadius}
+    } else {
+      _radius = radius
+    }
+    
 
     const center = {
       x: rectW / 2 + padding[3],
@@ -287,34 +246,24 @@ class Chart {
       }
     }
 
-    console.log(sumEveryX)
-
-    const arc: Array<Angle> = sumEveryX.map((item: number[]) => {
+    const arcs: Array<Angle> = sumEveryX.map((item: number[]) => {
       return {
         start: this.linearY.get(item[0]),
         end: this.linearY.get(item[1])
       }
     })
 
-    console.log(arc)
-
-    const colors = ['#ffccc7', '#ffe58f', '#eaff8f', 
-    '#87e8de', '#91d5ff', '#efdbff', '#ffadd2', '#8c8c8c', '#096dd9', '#531dab']
-
-    arc.forEach(({start, end}: {start: number, end: number},index) => {
-      context2d.beginPath()
-      context2d.moveTo(center.x, center.y)
-      context2d.arc(center.x, center.y, radius, start, end)
-      context2d.lineTo(center.x, center.y)
-      context2d.closePath()
-      console.log(colors[index % colors.length])
-      context2d.fillStyle = colors[index % colors.length]
-      context2d.fill()
-      
+    
+   
+    const pie: Pie = new Pie({
+      context2d: this.context2d,
+      arcs: arcs,
+      radius: _radius,
+      center: center
     })
 
-    context2d.stroke()
-    
+    pie.render()
+
   }
 
   renderAxisX(): void {
@@ -322,31 +271,16 @@ class Chart {
     const { width, height } = this.size
     const { context2d } = this
 
-    context2d.moveTo(padding[3], height - padding[2])
-    context2d.lineTo(width - padding[1], height - padding[2])
-
-    let sparseSize: number = 1
-
-    if (data.length > this.maxXTick) {
-      sparseSize = Math.ceil(data.length / this.maxXTick)
-    }
-
-    data.forEach((item: { x: any; y: number }, index: number) => {
-      const x = this.linearX.get(index)
-      const y = height - padding[2]
-
-      context2d.moveTo(x, y)
-      context2d.lineTo(x, y + 10 + ((index === 0 || index === data.length - 1) ? 10 : 0))
-
-      context2d.textAlign = 'center'
-      context2d.font = '16px SimSun, Songti SC'
-
-      if (sparseSize <= 1 || index % sparseSize === 0 || index === data.length - 1) {
-        context2d.fillText(item.x, x, y + 30)
-      }
+    const axisX = new AxisX({
+      context2d,
+      maxTick: this.maxXTick,
+      start: [padding[3], height - padding[2]],
+      end: [width - padding[1], height - padding[2]],
+      size: data.length,
+      data: data.map(item => item.x)
     })
 
-    context2d.stroke()
+    axisX.useLinear(this.linearX).render()
   }
 
   renderAxisY(): void {
@@ -354,29 +288,16 @@ class Chart {
     const { width, height } = this.size
     const { context2d } = this
 
-    context2d.moveTo(padding[3], height - padding[2])
-    context2d.lineTo(padding[3], padding[0])
+    const axisY = new AxisY({
+      context2d,
+      maxTick: this.maxYTick,
+      start: [padding[3], height - padding[2]],
+      end: [padding[3], padding[0]],
+      size: data.length,
+      data: data.map(item => item.y)
+    })
 
-    const distance = this._domainY[1] - this._domainY[0]
-
-    const yStep = distance / (this.maxYTick - 1)
-
-    const x = padding[3]
-    for (let i = this.maxYTick - 1; i >= 0; i--) {
-      let _yVal: number = yStep * i + this._domainY[0]
-      let y = this.linearY.get(_yVal)
-      let yVal = _yVal.toFixed(1)
-
-      context2d.moveTo(x, y)
-      context2d.lineTo(x - 10 - ((i === 0 || i === this.maxYTick - 1) ? 10 : 0), y)
-
-      context2d.textAlign = 'end'
-      context2d.font = '12px SimSun, Songti SC'
-
-      context2d.fillText(yVal, x - 20, y + 5)
-    }
-
-    context2d.stroke()
+    axisY.useLinear(this.linearY).useDomain(this._domainY).render()
   }
 
 }
@@ -391,30 +312,31 @@ for (var ii = 0; ii < 10; ii++) {
 
 // console.log(data)
 
-// new Chart({
-//   contianer: '#line',
-//   // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
-//   padding: [20, 20, 50, 50],
-//   data,
-//   type: 'line'
-// })
+new Chart({
+  contianer: '#line',
+  // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
+  padding: [20, 20, 50, 50],
+  data,
+  type: 'line',
+  showArea: true
+})
 
 
-// new Chart({
-//   contianer: '#bar',
-//   // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
-//   padding: [20, 20, 50, 50],
-//   data,
-//   type: 'bar',
-//   axis: {
-//     x: {
-//       padding: {
-//         left: 50,
-//         right: 50
-//       }
-//     }
-//   }
-// })
+new Chart({
+  contianer: '#bar',
+  // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
+  padding: [20, 20, 50, 50],
+  data,
+  type: 'bar',
+  axis: {
+    x: {
+      padding: {
+        left: 50,
+        right: 50
+      }
+    }
+  }
+})
 
 // new Chart({
 //   contianer: '#linearea',
@@ -431,5 +353,16 @@ new Chart({
   padding: [20, 20, 50, 50],
   data,
   type: 'pie',
-  showArea: true
+})
+
+new Chart({
+  contianer: '#huan',
+  // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
+  padding: [20, 20, 50, 50],
+  data,
+  type: 'pie',
+  radius: {
+    min: 0.6,
+    max: 0.8
+  }
 })

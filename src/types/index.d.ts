@@ -2,7 +2,7 @@ export interface chartOption {
   contianer: string | HTMLElement;
   data: Array<any>;
   padding?: [number, number, number, number],
-  type: 'line' | 'bar' | 'pie',
+  type: 'line' | 'bar' | 'pie' | 'huan',
   showArea?: boolean,
   axis?: {
     x?: {
@@ -11,6 +11,10 @@ export interface chartOption {
         right?: number,
       }
     }
+  },
+  radius?: {
+    min: number,
+    max: number
   }
 }
 
@@ -45,6 +49,14 @@ export interface BaseLinear {
 
   range(rangeVal: rangeValAry): BaseLinear
 
+}
 
+export interface axisOption {
+  context2d: CanvasRenderingContext2D;
+  maxTick: number;
+  start: [number, number];
+  end: [number, number];
+  size: number;
+  data: Array<any>;
 }
 
