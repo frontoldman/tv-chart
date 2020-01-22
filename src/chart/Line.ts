@@ -1,4 +1,5 @@
 import { COLOR_PLATE_8 } from '../options/color'
+import BaseChart from './BaseChart'
 
 interface baseLineOption {
   context2d: CanvasRenderingContext2D;
@@ -12,7 +13,7 @@ interface Point {
   y: number
 }
 
-export default class Line {
+export default class Line extends BaseChart {
   context2d: CanvasRenderingContext2D
 
   points: Array<Point>
@@ -22,6 +23,7 @@ export default class Line {
   areaY: number
 
   constructor(option: baseLineOption) {
+    super()
     this.context2d = option.context2d
     this.points = option.points
     this.showArea = option.showArea

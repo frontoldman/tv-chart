@@ -1,4 +1,5 @@
 import { COLOR_PLATE_8 } from '../options/color'
+import BaseChart from './BaseChart'
 
 interface Angle {
   start: number,
@@ -12,7 +13,7 @@ interface basePieOption {
   radius: number | { minRadius: number, maxRadius: number }
 }
 
-export default class Pie {
+export default class Pie extends BaseChart {
   context2d: CanvasRenderingContext2D
 
   arcs: Array<Angle>
@@ -24,6 +25,7 @@ export default class Pie {
   radius: number | { minRadius: number, maxRadius: number }
 
   constructor(option: basePieOption) {
+    super()
     this.arcs = option.arcs
     this.context2d = option.context2d
     this.center = option.center
@@ -34,8 +36,6 @@ export default class Pie {
     const { arcs, center, context2d, radius } = this
 
     let _radius: number, minRadius: number, maxRadius: number 
-
-    console.log(radius)
 
     let isHuan = false
     if (typeof radius === 'object') {
@@ -58,13 +58,12 @@ export default class Pie {
       }
       
       context2d.closePath()
+      context2d.lineWidth = 0.00001
       context2d.strokeStyle = COLOR_PLATE_8[index % COLOR_PLATE_8.length]
       context2d.fillStyle = COLOR_PLATE_8[index % COLOR_PLATE_8.length]
       context2d.fill()
-
     })
 
     context2d.stroke()
-    // context2d.lineWidth = 1
   }
 }

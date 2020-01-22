@@ -12,8 +12,8 @@ export function getOffset(dom: HTMLElement): {
   const rect = dom.getBoundingClientRect()
 
   return {
-    left: rect.left,
-    top: rect.top,
+    left: rect.left + document.documentElement.scrollLeft,
+    top: rect.top + document.documentElement.scrollTop,
     width: rect.width,
     height: rect.height,
   }

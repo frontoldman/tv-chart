@@ -1,8 +1,9 @@
-import { BaseChart, chartOption, chartSize, BaseLinear } from './types/index'
+import { chartOption, chartSize, BaseLinear } from './types/index'
 import { getOffset, queryDom, createDom, setStyle, setAttr } from './utils/dom'
 import { isString } from './utils/index'
 import { max, min } from './utils/data'
 import Linear from './scala/Linear'
+import BaseChart from './chart/BaseChart'
 import Line from './chart/Line'
 import Bar from './chart/Bar'
 import Pie from './chart/Pie'
@@ -43,6 +44,8 @@ class Chart {
 
   private maxYTick: number = 6
 
+  private chart: BaseChart
+
   constructor(option: chartOption) {
     this.initOption(option)
     this.initContainer()
@@ -51,20 +54,20 @@ class Chart {
     const { type } = option
     if (type === 'line') {
       this.createLinear()
-      this.renderLine()
+      this.chart = this.renderLine()
       this.renderAxisX()
       this.renderAxisY()
     } else if (type === 'bar') {
       this.createLinear()
-      this.renderBar()
+      this.chart = this.renderBar()
       this.renderAxisX()
       this.renderAxisY()
     } else if (type === 'pie') {
       this.createPieLinear()
-      this.renderPie()
+      this.chart = this.renderPie()
     } 
 
-    new Event(this.canvasDom)
+    new Event(this.canvasDom, this.chart)
 
   }
 
@@ -171,7 +174,7 @@ class Chart {
     this._domainY = [0, maxY]
   }
 
-  renderLine() {
+  renderLine(): Line {
     const { data, showArea } = this.option
 
     const points: Array<Point> = data.map(({ y }: { y: number }, index: number) => {
@@ -189,9 +192,11 @@ class Chart {
     })
 
     line.render()
+
+    return line
   }
 
-  renderBar() {
+  renderBar():Bar {
     const { data, padding } = this.option
     const { height } = this.size
 
@@ -209,9 +214,11 @@ class Chart {
     })
 
     bar.render()
+
+    return bar
   }
 
-  renderPie() {
+  renderPie():Pie {
     const { context2d } = this
     const { padding, data } = this.option
     const { width, height } = this.size
@@ -263,6 +270,8 @@ class Chart {
     })
 
     pie.render()
+
+    return pie
 
   }
 
