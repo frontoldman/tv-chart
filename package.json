@@ -16,7 +16,8 @@
   ],
   "author": "zr",
   "license": "ISC",
-  "dependencies": {},
+  "dependencies": {
+  },
   "devDependencies": {
     "awesome-typescript-loader": "^5.2.1",
     "typescript": "^3.7.4",

@@ -1,4 +1,6 @@
 export default class BaseChart {
+  _scalaX: any = null
+
   elvenElements: Array<any> = []
 
   constructor() {}
@@ -11,7 +13,15 @@ export default class BaseChart {
     return this.elvenElements
   }
 
-  checkEventIn(x: number, y: number): boolean {
-    return false
+  getEventIndex(x: number, y: number): number {
+    return -1
+  }
+
+  setScalaX(scala: any) {
+    this._scalaX = scala
+  }
+
+  getScalaX() {
+    return this._scalaX
   }
 }

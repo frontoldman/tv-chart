@@ -1,5 +1,6 @@
 import { COLOR_PLATE_8 } from '../options/color'
 import BaseChart from './BaseChart'
+import Linear from '../scala/Linear'
 
 interface baseLineOption {
   context2d: CanvasRenderingContext2D;
@@ -28,6 +29,28 @@ export default class Line extends BaseChart {
     this.points = option.points
     this.showArea = option.showArea
     this.areaY = option.areaY
+  }
+
+  getEventIndex(x: number, y: number): number {
+    const { points } = this
+    let step = this.getScalaX().getStep()
+    let half = step / 2
+   
+    for(let i = 0, l = points.length;i < l; i++) {
+        if (Math.abs(points[i].x - x) <= half) {
+          return i
+        } 
+    }
+
+    return -1
+  }
+
+  setScalaX(scala: Linear): void {
+    this._scalaX = scala
+  }
+
+  getScalaX(): Linear {
+    return this._scalaX
   }
 
   render(): void {

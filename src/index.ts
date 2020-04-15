@@ -10,6 +10,8 @@ import Pie from './chart/Pie'
 import AxisX from './axis/axisX'
 import AxisY from './axis/axisY'
 import Event from './event/index'
+import Tip from './tip/Tip'
+import pubsub from './utils/pubsub'
 
 interface Point {
   x: number,
@@ -21,7 +23,9 @@ interface Angle {
   end: number,
 }
 
-class Chart {
+export default class Chart {
+  private eventNo: number = Date.now()
+
   private option: chartOption
 
   private size: chartSize
@@ -67,7 +71,8 @@ class Chart {
       this.chart = this.renderPie()
     } 
 
-    new Event(this.canvasDom, this.chart)
+    new Event(this.canvasDom, this.chart, this, this.eventNo)
+    new Tip(this.contianerDom, this.eventNo)
 
   }
 
@@ -98,6 +103,11 @@ class Chart {
     setStyle(contianerDom, {
       position: 'relative'
     })
+  }
+
+  getDataByIndex(index: number): any {
+    const { data } = this.option
+    return data[index]
   }
 
   /**
@@ -190,6 +200,8 @@ class Chart {
       showArea: showArea,
       areaY: this.linearY.get(0)
     })
+
+    line.setScalaX(this.linearX)
 
     line.render()
 
