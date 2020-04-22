@@ -5,7 +5,7 @@
 
 #line {
   height: 400px;
-  margin-top: 30px;
+  margin-top: 300px;
   border: 1px solid #ddd;
 }
 
@@ -27,4 +27,8 @@
 #huan {
   height: 400px;
   margin-top: 30px;
+}
+
+.canvas-tip {
+  transition: all .3s;
 }

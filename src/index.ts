@@ -72,7 +72,7 @@ export default class Chart {
     } 
 
     new Event(this.canvasDom, this.chart, this, this.eventNo)
-    new Tip(this.contianerDom, this.eventNo)
+    new Tip(this.contianerDom, this.eventNo, this)
 
   }
 
@@ -101,13 +101,18 @@ export default class Chart {
     this.contianerDom = contianerDom
 
     setStyle(contianerDom, {
-      position: 'relative'
+      position: 'relative',
+      overflow: 'hidden'
     })
   }
 
   getDataByIndex(index: number): any {
     const { data } = this.option
     return data[index]
+  }
+
+  getSize(): chartSize  {
+    return this.size
   }
 
   /**

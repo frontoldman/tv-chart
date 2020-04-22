@@ -1,5 +1,7 @@
-import { createDom, setStyle } from '../utils/dom'
+import { createDom, setStyle, setAttr, getOffset } from '../utils/dom'
+import Chart from '../index'
 import pubsub from '../utils/pubsub'
+import { chartSize } from 'src/types/index'
 
 /**
  * 使用html做tip,简单一些
@@ -20,13 +22,17 @@ export default class Tip {
   // 事件监听token集合，需要的时候需要从事件监听器中间移除掉
   private eventTokens: Array<number> = []
 
-  constructor(contianerDom: HTMLElement, eventNo: number) {
+  private chart: Chart = null
+
+  constructor(contianerDom: HTMLElement, eventNo: number, chart: Chart) {
     this._contianerDom = contianerDom
     // this._data = data
     // this._x = x
     // this._y = y
     
     this.eventNo = eventNo
+
+    this.chart = chart
 
     this.createTip()
     // const showTipToken = pubsub.subscribe('showTip' + this.eventNo, () => {})
@@ -53,6 +59,10 @@ export default class Tip {
       padding: '10px'
     })
 
+    setAttr(tipContainer, {
+      class: 'canvas-tip'
+    })
+
     // tipContainer.innerHTML = 'hello'
 
     this.tipContainer = tipContainer
@@ -68,7 +78,7 @@ export default class Tip {
 
   hideTip() {
     setStyle(this.tipContainer, {
-      display: 'none'
+      // display: 'none'
     })
   }
 
@@ -79,14 +89,36 @@ export default class Tip {
    * @param eY y值
    */
   locationTip(data: any, eX: number, eY: number) {
+    const size: chartSize = this.chart.getSize()
+    this.tipContainer.innerHTML = data.x + ':' + data.y 
     setStyle(this.tipContainer, {
       display: 'block',
-      left: (eX + 10) + 'px',
-      top: (eY + 10) + 'px'
     })
 
-    this.tipContainer.innerHTML = data.x + ':' + data.y 
-  }
+    let offset = getOffset(this.tipContainer)
 
-  
+    console.log(offset)
+    console.log(size)
+    console.log(eY)
+
+
+    let left, top
+    if (eX + offset.width + 10 >= size.width) {
+      left = eX - offset.width - 10
+    } else {
+      left = eX + 10
+    }
+
+    if (eY + offset.height + 10 >= size.height) {
+      top = eY - offset.height - 10
+    } else {
+      top = eY + 10
+    }
+
+    setStyle(this.tipContainer, {
+      left: left + 'px',
+      top: top + 'px'
+    })
+
+  }
 }
