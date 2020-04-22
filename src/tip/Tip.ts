@@ -29,13 +29,15 @@ export default class Tip {
     this.eventNo = eventNo
 
     this.createTip()
-    const showTipToken = pubsub.subscribe('showTip' + this.eventNo, () => {})
-    const hideTipToken = pubsub.subscribe('hideTip'+ this.eventNo, () => {})
-    const locationTipToken = pubsub.subscribe('locationTip' + this.eventNo, (e: {data: any, x: number, y: number}) => {
+    // const showTipToken = pubsub.subscribe('showTip' + this.eventNo, () => {})
+    const hideTipToken = pubsub.subscribe('mouseout'+ this.eventNo, () => {
+      this.hideTip()
+    })
+    const locationTipToken = pubsub.subscribe('mouseover' + this.eventNo, (e: {data: any, x: number, y: number}) => {
       this.locationTip(e.data, e.x, e.y)
     })
 
-    this.eventTokens.push(showTipToken)
+    // this.eventTokens.push(showTipToken)
     this.eventTokens.push(hideTipToken)
     this.eventTokens.push(locationTipToken)
   }
@@ -51,7 +53,7 @@ export default class Tip {
       padding: '10px'
     })
 
-    tipContainer.innerHTML = 'hello'
+    // tipContainer.innerHTML = 'hello'
 
     this.tipContainer = tipContainer
 
@@ -79,8 +81,8 @@ export default class Tip {
   locationTip(data: any, eX: number, eY: number) {
     setStyle(this.tipContainer, {
       display: 'block',
-      left: eX + 'px',
-      top: eY + 'px'
+      left: (eX + 10) + 'px',
+      top: (eY + 10) + 'px'
     })
 
     this.tipContainer.innerHTML = data.x + ':' + data.y 

@@ -13,6 +13,10 @@ export default class Event {
 
   private eventNo: number
 
+  private mouseOutInter: number
+
+  private isIn: boolean = false
+
   /**
    * 
    * @param canvasDom canvas dom元素
@@ -36,16 +40,22 @@ export default class Event {
    * 初始化所有事件
    */
   initEvent() {
-    this._mouseOverEvent = debounce(this._mouseOverEvent.bind(this), 200)
+    this._mouseMoveEvent = debounce(this._mouseMoveEvent.bind(this), 200)
     this.initMouseOverEvent()
     this.initMouseClickEvent()
+    this.initMouseOutEvent()
+    this.initMouseIn()
+  }
+
+  initMouseIn() {
+    this.canvasDom.addEventListener('mouseover', this._mouseOverEvent.bind(this), false)
   }
 
   /**
    * 绑定鼠标移动事件
    */
   initMouseOverEvent() {
-    this.canvasDom.addEventListener('mousemove', this._mouseOverEvent, false)
+    this.canvasDom.addEventListener('mousemove', this._mouseMoveEvent, false)
   }
 
   /**
@@ -56,10 +66,21 @@ export default class Event {
   }
 
   /**
+   * 绑定鼠标移出事件
+   */
+  initMouseOutEvent() {
+    this.canvasDom.addEventListener('mouseout', this._mouseMoveOutEvent.bind(this), false)
+  }
+
+  _mouseOverEvent(e: MouseEvent) {
+    this.isIn = true
+  }
+
+  /**
    * 鼠标移动事件
    * @param e 
    */
-  _mouseOverEvent(e: MouseEvent) {
+  _mouseMoveEvent(e: MouseEvent) {
     const rect = this.getDomClient()
     const { pageX, pageY } = e
 
@@ -68,11 +89,19 @@ export default class Event {
 
     const { chart } = this
 
+    // 鼠标已经移出去
+    if (!this.isIn) {
+      return
+    }
+
+    // 鼠标move的时候需要清除mouseOutInter
+    clearTimeout(this.mouseOutInter)
+
     const index: number = chart.getEventIndex(eX, eY)
 
     if (index >= 0) {
       const dataIndexVal = this.main.getDataByIndex(index)
-      pubsub.publish('locationTip' + this.eventNo, {
+      pubsub.publish('mouseover' + this.eventNo, {
         data: dataIndexVal,
         x: eX,
         y: eY
@@ -89,11 +118,23 @@ export default class Event {
   }
 
   /**
+   * 鼠标移出事件
+   * @param e 
+   */
+  _mouseMoveOutEvent(e: MouseEvent) {
+    this.isIn = false
+    this.mouseOutInter = setTimeout(() => {
+      pubsub.publish('mouseout' + this.eventNo)
+    }, 200)
+  }
+
+  /**
    * 移除事件
    */
   removeEvents() {
     this.canvasDom.removeEventListener('mousemove', this._mouseOverEvent)
     this.canvasDom.removeEventListener('click', this._mouseClickEvent)
+    this.canvasDom.removeEventListener('mouseout', this._mouseMoveOutEvent)
   }
 
   getDomClient() {

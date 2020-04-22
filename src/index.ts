@@ -343,47 +343,47 @@ new Chart({
 })
 
 
-new Chart({
-  contianer: '#bar',
-  // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
-  padding: [20, 20, 50, 50],
-  data,
-  type: 'bar',
-  axis: {
-    x: {
-      padding: {
-        left: 50,
-        right: 50
-      }
-    }
-  }
-})
-
 // new Chart({
-//   contianer: '#linearea',
+//   contianer: '#bar',
 //   // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
 //   padding: [20, 20, 50, 50],
 //   data,
-//   type: 'line',
-//   showArea: true
+//   type: 'bar',
+//   axis: {
+//     x: {
+//       padding: {
+//         left: 50,
+//         right: 50
+//       }
+//     }
+//   }
 // })
 
-new Chart({
-  contianer: '#pie',
-  // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
-  padding: [20, 20, 50, 50],
-  data,
-  type: 'pie',
-})
+// // new Chart({
+// //   contianer: '#linearea',
+// //   // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
+// //   padding: [20, 20, 50, 50],
+// //   data,
+// //   type: 'line',
+// //   showArea: true
+// // })
 
-new Chart({
-  contianer: '#huan',
-  // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
-  padding: [20, 20, 50, 50],
-  data,
-  type: 'pie',
-  radius: {
-    min: 0.6,
-    max: 0.8
-  }
-})
+// new Chart({
+//   contianer: '#pie',
+//   // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
+//   padding: [20, 20, 50, 50],
+//   data,
+//   type: 'pie',
+// })
+
+// new Chart({
+//   contianer: '#huan',
+//   // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
+//   padding: [20, 20, 50, 50],
+//   data,
+//   type: 'pie',
+//   radius: {
+//     min: 0.6,
+//     max: 0.8
+//   }
+// })
