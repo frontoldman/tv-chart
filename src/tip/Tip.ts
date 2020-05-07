@@ -78,7 +78,7 @@ export default class Tip {
 
   hideTip() {
     setStyle(this.tipContainer, {
-      // display: 'none'
+      display: 'none'
     })
   }
 
@@ -96,11 +96,6 @@ export default class Tip {
     })
 
     let offset = getOffset(this.tipContainer)
-
-    console.log(offset)
-    console.log(size)
-    console.log(eY)
-
 
     let left, top
     if (eX + offset.width + 10 >= size.width) {

@@ -1,6 +1,8 @@
 export default class BaseChart {
   _scalaX: any = null
 
+  _scalaY: any = null
+
   elvenElements: Array<any> = []
 
   constructor() {}

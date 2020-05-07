@@ -50,4 +50,8 @@ export default class Linear implements BaseLinear {
     
   }
 
+  getRange(): rangeValAry {
+    return this._rangeVal
+  }
+
 }

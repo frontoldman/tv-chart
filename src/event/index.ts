@@ -89,23 +89,27 @@ export default class Event {
 
     const { chart } = this
 
+    console.log(this.isIn)
+
     // 鼠标已经移出去
     if (!this.isIn) {
       return
     }
 
     // 鼠标move的时候需要清除mouseOutInter
-    clearTimeout(this.mouseOutInter)
-
     const index: number = chart.getEventIndex(eX, eY)
 
     if (index >= 0) {
+      clearTimeout(this.mouseOutInter)
+      this.isIn = true
       const dataIndexVal = this.main.getDataByIndex(index)
       pubsub.publish('mouseover' + this.eventNo, {
         data: dataIndexVal,
         x: eX,
         y: eY
       })
+    } else {
+      this.removeOutOfChart()
     }
   }
 
@@ -123,9 +127,7 @@ export default class Event {
    */
   _mouseMoveOutEvent(e: MouseEvent) {
     this.isIn = false
-    this.mouseOutInter = setTimeout(() => {
-      pubsub.publish('mouseout' + this.eventNo)
-    }, 200)
+    this.removeOutOfChart()
   }
 
   /**
@@ -139,5 +141,11 @@ export default class Event {
 
   getDomClient() {
     return getOffset(this.canvasDom)
+  }
+
+  removeOutOfChart() {
+    this.mouseOutInter = setTimeout(() => {
+      pubsub.publish('mouseout' + this.eventNo)
+    }, 200)
   }
 }

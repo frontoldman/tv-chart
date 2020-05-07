@@ -35,11 +35,18 @@ export default class Line extends BaseChart {
     const { points } = this
     let step = this.getScalaX().getStep()
     let half = step / 2
-   
-    for(let i = 0, l = points.length;i < l; i++) {
-        if (Math.abs(points[i].x - x) <= half) {
+
+    let scalaYRange = this.getScalaY().getRange()
+    let scalaXRange = this.getScalaX().getRange()
+
+    if (y >= scalaYRange[1] && y <= scalaYRange[0]) {
+      for (let i = 0, l = points.length; i < l; i++) {
+        if (x >= scalaXRange[0] 
+          && x <= scalaXRange[1]
+          && Math.abs(points[i].x - x) <= half) {
           return i
-        } 
+        }
+      }
     }
 
     return -1
@@ -51,6 +58,14 @@ export default class Line extends BaseChart {
 
   getScalaX(): Linear {
     return this._scalaX
+  }
+
+  setScalaY(scala: Linear): void {
+    this._scalaY = scala
+  }
+
+  getScalaY(): Linear {
+    return this._scalaY
   }
 
   render(): void {

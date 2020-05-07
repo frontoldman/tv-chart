@@ -207,6 +207,7 @@ export default class Chart {
     })
 
     line.setScalaX(this.linearX)
+    line.setScalaY(this.linearY)
 
     line.render()
 
