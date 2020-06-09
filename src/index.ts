@@ -58,21 +58,18 @@ export default class Chart {
     const { type } = option
     if (type === 'line') {
       this.createLinear()
-      this.chart = this.renderLine()
-      this.renderAxisX()
-      this.renderAxisY()
     } else if (type === 'bar') {
       this.createLinear()
-      this.chart = this.renderBar()
-      this.renderAxisX()
-      this.renderAxisY()
     } else if (type === 'pie') {
       this.createPieLinear()
-      this.chart = this.renderPie()
     } 
+
+    this.render()
 
     new Event(this.canvasDom, this.chart, this, this.eventNo)
     new Tip(this.contianerDom, this.eventNo, this)
+
+    this.startAnimation(this.render.bind(this))
 
   }
 
@@ -203,7 +200,8 @@ export default class Chart {
       context2d: this.context2d,
       points: points,
       showArea: showArea,
-      areaY: this.linearY.get(0)
+      areaY: this.linearY.get(0),
+      eventNo: this.eventNo
     })
 
     line.setScalaX(this.linearX)
@@ -325,6 +323,42 @@ export default class Chart {
     })
 
     axisY.useLinear(this.linearY).useDomain(this._domainY).render()
+  }
+
+  clearRect() {
+    const { size } = this
+    this.context2d.clearRect(0, 0, size.width, size.height)
+  }
+
+  render() {
+    const { type } = this.option
+    // console.log(333)
+    // render之前擦掉，用来做动画
+    this.clearRect()
+
+    if (type === 'line') {
+      if (!this.chart) {
+        this.chart = this.renderLine()
+      } else {
+        this.chart.render()
+      }
+      
+      this.renderAxisX()
+      this.renderAxisY()
+    } else if (type === 'bar') {
+      this.chart = this.renderBar()
+      this.renderAxisX()
+      this.renderAxisY()
+    } else if (type === 'pie') {
+      this.chart = this.renderPie()
+    } 
+  }
+
+  startAnimation(callback: FrameRequestCallback) {
+    callback(99999999)
+    window.requestAnimationFrame(() => {
+      this.startAnimation(callback)
+    })
   }
 
 }

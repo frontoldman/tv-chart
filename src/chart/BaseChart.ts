@@ -26,4 +26,6 @@ export default class BaseChart {
   getScalaX() {
     return this._scalaX
   }
+
+  render() {}
 }

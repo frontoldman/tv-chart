@@ -39,6 +39,7 @@ export default class Tip {
     const hideTipToken = pubsub.subscribe('mouseout'+ this.eventNo, () => {
       this.hideTip()
     })
+    
     const locationTipToken = pubsub.subscribe('mouseover' + this.eventNo, (e: {data: any, x: number, y: number}) => {
       this.locationTip(e.data, e.x, e.y)
     })

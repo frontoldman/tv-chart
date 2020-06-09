@@ -1,12 +1,14 @@
 import { COLOR_PLATE_8 } from '../options/color'
 import BaseChart from './BaseChart'
 import Linear from '../scala/Linear'
+import pubsub from '../utils/pubsub'
 
 interface baseLineOption {
   context2d: CanvasRenderingContext2D;
   points: Array<Point>;
   showArea?: boolean;
-  areaY: number
+  areaY: number,
+  eventNo: number,
 }
 
 interface Point {
@@ -23,12 +25,34 @@ export default class Line extends BaseChart {
 
   areaY: number
 
+  eventNo: number
+
+  tipLinearEvent: {data: any, x: number, y: number}
+
+  eventTokens: Array<number> = []
+
   constructor(option: baseLineOption) {
     super()
     this.context2d = option.context2d
     this.points = option.points
     this.showArea = option.showArea
     this.areaY = option.areaY
+    this.eventNo = option.eventNo
+
+    this.initEvent()
+  }
+
+  private initEvent(): void {
+    const locationToken = pubsub.subscribe('mouseover' + this.eventNo, (e: {data: any, x: number, y: number}) => {
+      this.tipLinearEvent = e
+    })
+
+    const hideToken = pubsub.subscribe('mouseout'+ this.eventNo, () => {
+      this.tipLinearEvent = null
+    })
+
+    this.eventTokens.push(hideToken)
+    this.eventTokens.push(locationToken)
   }
 
   getEventIndex(x: number, y: number): number {
@@ -68,7 +92,39 @@ export default class Line extends BaseChart {
     return this._scalaY
   }
 
-  render(): void {
+  createTipLineAndCircle(e: {data: any, x: number, y: number}) {
+    const { data, x, y } = e
+    const lineX = this.getScalaX().get(data.x)
+    const lineY = this.getScalaY().get(data.y)
+
+    this.renderTipLineAndPoint(lineX, lineY)
+  }
+
+  /**
+   * 渲染tip对应的点和线
+   * @param lineX 横坐标
+   * @param lineY 纵坐标
+   */
+  renderTipLineAndPoint(lineX: number, lineY: number) {
+    const { context2d } = this
+    const color: string = COLOR_PLATE_8[1]
+    context2d.strokeStyle = color
+
+    const scalaY = this.getScalaY()
+    const range = scalaY.getRange()
+    context2d.beginPath()
+    this.context2d.globalAlpha = 1
+    context2d.moveTo(lineX, range[0])
+    context2d.lineTo(lineX, range[1])
+    context2d.stroke()
+
+    context2d.beginPath()
+    context2d.arc(lineX, lineY, 5, 0, Math.PI * 2)
+    context2d.fillStyle = color;
+    context2d.fill()
+  }
+
+  private renderChart(): void {
     const { points, showArea, areaY } = this
 
     const n: number = points.length
@@ -144,5 +200,14 @@ export default class Line extends BaseChart {
     }
 
     this.context2d.stroke()
+  }
+
+  render(): void {
+    this.renderChart()
+    console.log(this)
+    if (this.tipLinearEvent) {
+      console.log(44444)
+      this.createTipLineAndCircle(this.tipLinearEvent)
+    }
   }
 }
