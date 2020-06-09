@@ -22,7 +22,6 @@ export default class Linear implements BaseLinear {
   }
 
   range(range: rangeValAry): BaseLinear  {
-    console.log(range)
     this._rangeVal = range
     this._rangeDistance = range[1] - range[0]
     if (this._domainDistance) {

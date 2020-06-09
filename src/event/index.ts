@@ -89,8 +89,6 @@ export default class Event {
 
     const { chart } = this
 
-    console.log(this)
-
     // 鼠标已经移出去
     if (!this.isIn) {
       return

@@ -12,6 +12,8 @@ import AxisY from './axis/axisY'
 import Event from './event/index'
 import Tip from './tip/Tip'
 import pubsub from './utils/pubsub'
+import { DURATION } from './options/config'
+import { jQueryEasing } from './utils/easing'
 
 interface Point {
   x: number,
@@ -50,6 +52,8 @@ export default class Chart {
 
   private chart: BaseChart
 
+  private startTime: number
+
   constructor(option: chartOption) {
     this.initOption(option)
     this.initContainer()
@@ -63,6 +67,8 @@ export default class Chart {
     } else if (type === 'pie') {
       this.createPieLinear()
     } 
+
+    this.startTime = Date.now()
 
     this.render()
 
@@ -139,6 +145,34 @@ export default class Chart {
     this.context2d = context2d
   }
 
+  createAnimateFn(): Array<Point> {
+    const _y = this.linearY.get(this._domainY[0])
+    const now = Date.now();
+    let percent = (now - this.startTime) / DURATION
+
+    if (percent >= 1) {
+      percent = 1
+    }
+
+    const points: Array<Point> = this.option.data.map(({ y }: { y: number }, index: number) => {
+      let lastY
+      const _maxY = this.linearY.get(y)
+      if (percent === 1) {
+        lastY = _maxY
+      } else {
+        const _durationNum = _maxY - _y
+        lastY = _y + _durationNum * jQueryEasing.swing(percent)
+      }
+
+      return {
+        x: this.linearX.get(index),
+        y: lastY
+      }
+    })
+
+    return points
+  }
+
   /**
    * 创建比例尺
    */
@@ -178,7 +212,6 @@ export default class Chart {
     }, 0)
 
     const linearY = new Linear()
-    // linearY.domain([0, maxY]).range([-Math.PI * 0.5, Math.PI * 1.5])
     linearY.domain([0, maxY]).range([-0.5 * Math.PI, 1.5 * Math.PI])
 
     this.linearY = linearY
@@ -186,13 +219,19 @@ export default class Chart {
     this._domainY = [0, maxY]
   }
 
-  renderLine(): Line {
+  renderLine(useAnimate = false): Line {
     const { data, showArea } = this.option
+    const { _domainY } = this
+    const _y = this.linearY.get(_domainY[0])
+    // 中间过程结果优化
+    if (useAnimate) {
+
+    }
 
     const points: Array<Point> = data.map(({ y }: { y: number }, index: number) => {
       return {
         x: this.linearX.get(index),
-        y: this.linearY.get(y)
+        y: _y
       }
     })
 
@@ -201,7 +240,8 @@ export default class Chart {
       points: points,
       showArea: showArea,
       areaY: this.linearY.get(0),
-      eventNo: this.eventNo
+      eventNo: this.eventNo,
+      animateFn: this.createAnimateFn.bind(this)
     })
 
     line.setScalaX(this.linearX)
@@ -215,6 +255,8 @@ export default class Chart {
   renderBar():Bar {
     const { data, padding } = this.option
     const { height } = this.size
+    const { _domainY } = this
+
 
     const points: Array<Point> = data.map(({ y }: { y: number }, index: number) => {
       return {
@@ -226,8 +268,13 @@ export default class Chart {
     const bar = new Bar({
       context2d: this.context2d,
       points: points,
-      height: height - padding[2]
+      height: height - padding[2],
+      eventNo: this.eventNo,
+      animateFn: this.createAnimateFn.bind(this)
     })
+
+    bar.setScalaX(this.linearX)
+    bar.setScalaY(this.linearY)
 
     bar.render()
 
@@ -332,7 +379,6 @@ export default class Chart {
 
   render() {
     const { type } = this.option
-    // console.log(333)
     // render之前擦掉，用来做动画
     this.clearRect()
 
@@ -346,12 +392,21 @@ export default class Chart {
       this.renderAxisX()
       this.renderAxisY()
     } else if (type === 'bar') {
-      this.chart = this.renderBar()
+      if (!this.chart) {
+        this.chart = this.renderBar()
+      } else {
+        this.chart.render()
+      }
       this.renderAxisX()
       this.renderAxisY()
     } else if (type === 'pie') {
-      this.chart = this.renderPie()
+      if (!this.chart) {
+        this.chart = this.renderPie()
+      } else {
+        this.chart.render()
+      }
     } 
+
   }
 
   startAnimation(callback: FrameRequestCallback) {
@@ -383,21 +438,21 @@ new Chart({
 })
 
 
-// new Chart({
-//   contianer: '#bar',
-//   // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
-//   padding: [20, 20, 50, 50],
-//   data,
-//   type: 'bar',
-//   axis: {
-//     x: {
-//       padding: {
-//         left: 50,
-//         right: 50
-//       }
-//     }
-//   }
-// })
+new Chart({
+  contianer: '#bar',
+  // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
+  padding: [20, 20, 50, 50],
+  data,
+  type: 'bar',
+  axis: {
+    x: {
+      padding: {
+        left: 50,
+        right: 50
+      }
+    }
+  }
+})
 
 // // new Chart({
 // //   contianer: '#linearea',

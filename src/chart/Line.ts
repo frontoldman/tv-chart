@@ -2,6 +2,8 @@ import { COLOR_PLATE_8 } from '../options/color'
 import BaseChart from './BaseChart'
 import Linear from '../scala/Linear'
 import pubsub from '../utils/pubsub'
+import { jQueryEasing } from '../utils/easing'
+import { DURATION } from '../options/config'
 
 interface baseLineOption {
   context2d: CanvasRenderingContext2D;
@@ -9,6 +11,7 @@ interface baseLineOption {
   showArea?: boolean;
   areaY: number,
   eventNo: number,
+  animateFn: () => Array<Point>;
 }
 
 interface Point {
@@ -31,6 +34,10 @@ export default class Line extends BaseChart {
 
   eventTokens: Array<number> = []
 
+  startTime: number
+
+  animateFn: () => Array<Point>
+
   constructor(option: baseLineOption) {
     super()
     this.context2d = option.context2d
@@ -38,6 +45,9 @@ export default class Line extends BaseChart {
     this.showArea = option.showArea
     this.areaY = option.areaY
     this.eventNo = option.eventNo
+    this.animateFn = option.animateFn
+
+    this.startTime = Date.now()
 
     this.initEvent()
   }
@@ -125,7 +135,9 @@ export default class Line extends BaseChart {
   }
 
   private renderChart(): void {
-    const { points, showArea, areaY } = this
+    this.points = this.animateFn()
+
+    let { points, showArea, areaY } = this
 
     const n: number = points.length
 
@@ -204,9 +216,7 @@ export default class Line extends BaseChart {
 
   render(): void {
     this.renderChart()
-    console.log(this)
     if (this.tipLinearEvent) {
-      console.log(44444)
       this.createTipLineAndCircle(this.tipLinearEvent)
     }
   }
