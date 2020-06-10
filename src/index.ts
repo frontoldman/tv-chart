@@ -293,8 +293,8 @@ export default class Chart {
 
     if (typeof this.option.radius === 'object') {
       const { min, max } = this.option.radius
-    const maxRadius = max * radius
-    const minRadius = min * radius
+      const maxRadius = max * radius
+      const minRadius = min * radius
       _radius = {minRadius, maxRadius}
     } else {
       _radius = radius
@@ -322,14 +322,45 @@ export default class Chart {
         end: this.linearY.get(item[1])
       }
     })
-
-    
    
     const pie: Pie = new Pie({
       context2d: this.context2d,
       arcs: arcs,
       radius: _radius,
-      center: center
+      center: center,
+      eventNo: this.eventNo,
+      animateFn: () => {
+        const { linearY } = this
+        const min: number = -0.5
+        const max: number = 1.5
+
+        const now = Date.now();
+
+        let percent = (now - this.startTime) / DURATION
+
+        if (percent >= 1) {
+          percent = 1
+        }
+
+        let lastY
+        if (percent === 1) {
+          lastY = max
+        } else {
+          const _durationNum = max - min
+          lastY = min + _durationNum * jQueryEasing.swing(percent)
+        }
+
+        linearY.range([min * Math.PI, lastY * Math.PI])
+
+        const arcs: Array<Angle> = sumEveryX.map((item: number[]) => {
+          return {
+            start: this.linearY.get(item[0]),
+            end: this.linearY.get(item[1])
+          }
+        })
+
+        return arcs
+      }
     })
 
     pie.render()
@@ -463,22 +494,26 @@ new Chart({
 // //   showArea: true
 // // })
 
-// new Chart({
-//   contianer: '#pie',
-//   // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
-//   padding: [20, 20, 50, 50],
-//   data,
-//   type: 'pie',
-// })
+new Chart({
+  contianer: '#pie',
+  // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
+  padding: [20, 20, 50, 50],
+  data,
+  type: 'pie',
+  radius: {
+    min: 0,
+    max: 0.8
+  }
+})
 
-// new Chart({
-//   contianer: '#huan',
-//   // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
-//   padding: [20, 20, 50, 50],
-//   data,
-//   type: 'pie',
-//   radius: {
-//     min: 0.6,
-//     max: 0.8
-//   }
-// })
+new Chart({
+  contianer: '#huan',
+  // data: [{ x: 1, y: 20 }, { x: 2, y: 30 }, { x: 3, y: 50 }, { x: 4, y: 35 }, { x: 5, y: 35 }],
+  padding: [20, 20, 50, 50],
+  data,
+  type: 'pie',
+  radius: {
+    min: 0.2,
+    max: 0.8
+  }
+})

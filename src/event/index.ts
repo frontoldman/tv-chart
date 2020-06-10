@@ -105,6 +105,7 @@ export default class Event {
         data: dataIndexVal,
         x: eX,
         y: eY,
+        index,
       })
     } else {
       this.removeOutOfChart()
