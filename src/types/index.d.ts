@@ -2,7 +2,7 @@ export interface chartOption {
   contianer: string | HTMLElement;
   data: Array<any>;
   padding?: [number, number, number, number],
-  type: 'line' | 'bar' | 'pie' | 'huan',
+  type: 'line' | 'bar' | 'pie' | 'huan' | 'scatter' | 'bubble',
   showArea?: boolean,
   axis?: {
     x?: {

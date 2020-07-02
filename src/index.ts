@@ -7,6 +7,7 @@ import BaseChart from './chart/BaseChart'
 import Line from './chart/Line'
 import Bar from './chart/Bar'
 import Pie from './chart/Pie'
+import Scatter from './chart/Scatter'
 import AxisX from './axis/axisX'
 import AxisY from './axis/axisY'
 import Event from './event/index'
@@ -17,7 +18,8 @@ import { jQueryEasing } from './utils/easing'
 
 interface Point {
   x: number,
-  y: number
+  y: number,
+  z?: number,
 }
 
 interface Angle {
@@ -66,7 +68,11 @@ export default class Chart {
       this.createLinear()
     } else if (type === 'pie') {
       this.createPieLinear()
-    } 
+    } else if (type === 'scatter') {
+      this.createLinear()
+    } else if (type === 'bubble') {
+      this.createLinear()
+    }
 
     this.startTime = Date.now()
 
@@ -74,6 +80,8 @@ export default class Chart {
 
     new Event(this.canvasDom, this.chart, this, this.eventNo)
     new Tip(this.contianerDom, this.eventNo, this)
+
+    console.log('init')
 
     this.startAnimation(this.render.bind(this))
 
@@ -154,7 +162,7 @@ export default class Chart {
       percent = 1
     }
 
-    const points: Array<Point> = this.option.data.map(({ y }: { y: number }, index: number) => {
+    const points: Array<Point> = this.option.data.map(({ y, z }: { y: number, z: number }, index: number) => {
       let lastY
       const _maxY = this.linearY.get(y)
       if (percent === 1) {
@@ -166,7 +174,8 @@ export default class Chart {
 
       return {
         x: this.linearX.get(index),
-        y: lastY
+        y: lastY,
+        z
       }
     })
 
@@ -281,8 +290,38 @@ export default class Chart {
     return bar
   }
 
+  renderScatter(): Scatter {
+    const { data, padding } = this.option
+    const { height } = this.size
+
+    const points: Array<Point> = data.map(({ y, z }: { y: number, z: number }, index: number) => {
+      return {
+        x: this.linearX.get(index),
+        y: this.linearY.get(y),
+        z,
+      }
+    })
+
+    console.log(points)
+
+    const scatter = new Scatter({
+      context2d: this.context2d,
+      points: points,
+      height: height - padding[2],
+      eventNo: this.eventNo,
+      type: this.option.type,
+      animateFn: this.createAnimateFn.bind(this)
+    })
+
+    scatter.setScalaX(this.linearX)
+    scatter.setScalaY(this.linearY)
+
+    scatter.render()
+
+    return scatter
+  }
+
   renderPie():Pie {
-    const { context2d } = this
     const { padding, data } = this.option
     const { width, height } = this.size
     const rectW = width - padding[1] - padding[3]
@@ -436,6 +475,14 @@ export default class Chart {
       } else {
         this.chart.render()
       }
+    } else if (type === 'scatter' || type === 'bubble') {
+      if (!this.chart) {
+        this.chart = this.renderScatter()
+      } else {
+        this.chart.render()
+      }
+      this.renderAxisX()
+      this.renderAxisY()
     } 
 
   }
@@ -453,7 +500,8 @@ const data = []
 for (var ii = 0; ii < 10; ii++) {
   data[ii] = {
     x: ii,
-    y: Math.random() * 90
+    y: Math.random() * 90,
+    z: Math.random() * 20,
   }
 }
 
@@ -475,6 +523,36 @@ new Chart({
   padding: [20, 20, 50, 50],
   data,
   type: 'bar',
+  axis: {
+    x: {
+      padding: {
+        left: 50,
+        right: 50
+      }
+    }
+  }
+})
+
+new Chart({
+  contianer: '#scatter',
+  padding: [20, 20, 50, 50],
+  data,
+  type: 'scatter',
+  axis: {
+    x: {
+      padding: {
+        left: 50,
+        right: 50
+      }
+    }
+  }
+})
+
+new Chart({
+  contianer: '#bubble',
+  padding: [20, 20, 50, 50],
+  data,
+  type: 'bubble',
   axis: {
     x: {
       padding: {
